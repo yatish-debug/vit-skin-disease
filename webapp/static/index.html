@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DermViT — Vision Transformer Skin Disease Diagnostic System</title>
+  <meta name="description" content="State-of-the-art automated skin lesion classification powered by Vision Transformers (ViT) on dermoscopic imagery.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <script>
+    (function() {
+      try {
+        const saved = localStorage.getItem('dermvit_theme');
+        if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- Background decorative glows -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- Header Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-logo">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Derm<span class="gradient-text">ViT</span></h1>
+          <span class="version-tag">Vision Transformer AI</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="header-status">
+          <span class="status-indicator active" id="modelStatusIndicator"></span>
+          <span class="status-text" id="modelStatusText">model/vit-skin-disease</span>
+        </div>
+
+        <button type="button" class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle Theme" title="Toggle Dark/Light Mode">
+          <span class="theme-toggle-icon">
+            <!-- Sun Icon (visible in dark mode to switch to light) -->
+            <svg class="theme-icon icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <!-- Moon Icon (visible in light mode to switch to dark) -->
+            <svg class="theme-icon icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </span>
+          <span class="theme-toggle-text" id="themeToggleText">Dark Mode</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-wrapper">
+
+    <!-- Hero Introduction -->
+    <section class="hero-section">
+      <div class="badge-pill">
+        <span class="pulse-dot"></span>
+        <span>Deep Learning Dermatopathology Framework</span>
+      </div>
+      <h2 class="hero-title">Automated Skin Disease Classification with <span class="gradient-text">Vision Transformers</span></h2>
+      <p class="hero-subtitle">
+        Upload dermoscopic lesion imagery or test clinical samples to receive instant classification across 22 skin pathologies powered by <strong>kaggle.yb26/dataset/model/vit-skin-disease</strong>.
+      </p>
+    </section>
+
+    <!-- Workstation Grid -->
+    <div class="workstation-grid">
+
+      <!-- Left Column: Image Upload & Controls -->
+      <section class="card glass upload-card" aria-label="Upload Skin Image">
+        <div class="card-header">
+          <h3 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            Image Input
+          </h3>
+          <span class="badge-subtle">ISIC Dermoscopy</span>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div class="drop-zone" id="dropZone" tabindex="0">
+          <input type="file" id="fileInput" accept="image/*" class="visually-hidden">
+          
+          <div class="drop-prompt" id="dropPrompt">
+            <div class="upload-icon-circle">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <h4>Drag & Drop your image here</h4>
+            <p>Supports PNG, JPG, JPEG, WEBP</p>
+            <button type="button" class="btn btn-secondary" id="browseBtn">
+              Browse from Device
+            </button>
+          </div>
+
+          <!-- Live Image Preview (Hidden by default) -->
+          <div class="preview-container hidden" id="previewContainer">
+            <img id="imagePreview" alt="Skin Lesion Preview" src="" />
+            <button type="button" class="btn-clear" id="clearBtn" title="Remove image">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Analyze CTA Button -->
+        <button type="button" class="btn btn-primary btn-block" id="analyzeBtn" disabled>
+          <span class="btn-text">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            Run ViT Inference
+          </span>
+          <span class="spinner hidden" id="analyzeSpinner"></span>
+        </button>
+      </section>
+
+      <!-- Right Column: Diagnostic Intelligence Dashboard -->
+      <section class="card glass results-card" aria-label="Diagnostic Results" id="resultsSection">
+        
+        <!-- Empty State Placeholder -->
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon-wrap">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+          </div>
+          <h3>Awaiting Image Analysis</h3>
+          <p>Upload a skin lesion photo to view deep learning transformer attention analysis and diagnostic probability distributions.</p>
+        </div>
+
+        <!-- Populated Results Content -->
+        <div class="results-content hidden" id="resultsContent">
+          
+          <!-- Top Diagnosis Card -->
+          <div class="primary-diagnosis-banner" id="primaryBanner">
+            <div class="diag-header-row">
+              <span class="diag-subtitle">Primary AI Dermatopathology Dossier</span>
+              <span class="diag-badge" id="diagSeverityBadge">Risk Level</span>
+            </div>
+            
+            <div class="diag-title-row">
+              <div>
+                <h3 class="diag-name" id="diagName">Melanoma</h3>
+                <div class="diag-fullname" id="diagFullName">Malignant Melanoma (MEL)</div>
+              </div>
+              <div class="diag-confidence-ring">
+                <span class="confidence-number" id="diagConfidenceNumber">92.4%</span>
+                <span class="confidence-label">Confidence</span>
+              </div>
+            </div>
+
+            <!-- Optical Visual Biomarkers Grid (The 4 Factors) -->
+            <div class="dossier-biomarkers-grid" id="dossierBiomarkers">
+              <!-- Dynamically populated 4 biomarker cards -->
+            </div>
+
+            <!-- 1. Yeh Kya Hai? (Clinical Overview) -->
+            <div class="dossier-section">
+              <div class="dossier-section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                Yeh Kya Hai? (Clinical Overview)
+              </div>
+              <p class="dossier-text" id="conditionOverview">Clinical definition of this skin condition...</p>
+            </div>
+
+            <!-- 2. Kiski Wajah Se Hoti Hai? (Causes & Pathological Mechanism) -->
+            <div class="dossier-section">
+              <div class="dossier-section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                Kiski Wajah Se Hoti Hai? (Causes, Triggers & Pathological Mechanism)
+              </div>
+              <p class="dossier-text" id="conditionPathology">Pathophysiological mechanism and biological causes...</p>
+            </div>
+
+          </div>
+
+          <!-- Top Probability Distribution -->
+          <div class="chart-section">
+            <div class="section-title-row">
+              <h4>Top Probability Distribution</h4>
+              <span class="latency-pill" id="inferenceLatency">38ms</span>
+            </div>
+            <div class="bar-chart-container" id="topBarsContainer">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Diagnostic Scan History (Last 25 Records) -->
+    <section class="card glass history-section" id="historySection">
+      <div class="card-header history-card-header">
+        <div class="history-title-group">
+          <h3 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            Diagnostic Scan History
+          </h3>
+          <span class="badge-subtle" id="historyCounterBadge">0 / 25 Records Saved</span>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" id="clearHistoryBtn" title="Clear all saved records">
+          Clear History
+        </button>
+      </div>
+
+      <!-- Empty State -->
+      <div class="history-empty" id="historyEmpty">
+        <div class="history-empty-icon">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </div>
+        <p>No previous diagnostic records saved yet. Any image you analyze will automatically be saved here with an exact date & timestamp (up to 25 records).</p>
+      </div>
+
+      <!-- History Records Grid -->
+      <div class="history-grid hidden" id="historyGrid">
+        <!-- Dynamically rendered scan history cards -->
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

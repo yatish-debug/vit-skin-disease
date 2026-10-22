@@ -1,0 +1,33 @@
+# Python virtual environments
+.venv/
+venv/
+env/
+tf_env/
+
+# Python cache & compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Model weights (>100MB; auto-downloaded on first run from HuggingFace)
+models/vit-skin-disease/*.safetensors
+*.safetensors
+*.keras
+*.h5
+
+# Agents & IDE metadata
+.agent/
+.agents/
+.gemini/
+.gsd/
+GSD-STYLE.md
+PROJECT_RULES.md
+scripts/
+*.log
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
